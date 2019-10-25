@@ -61,6 +61,20 @@
           * 对象冒充实现继承
           * 原型链实现继承
           * 对象冒充 + 原型链组合实现继承
+      
+      3. **[详细资料请看：/stage04/README.md](/stage04/README.md)**
+      4. **[详细代码请看：/stage04/index.ts](/stage04/index.ts)**
+   
+   * typescript
+      1. ts中类的定义
+      2. 类的继承(extends, super)
+      3. 类的修饰符
+        * public: 公有。  在类里面，子类，类外面都可以访问
+        * protected： 保护类型。  在类里面，子类里面可以访问，在类外部服务访问
+        * private: 私有。 在类里面可以访问，子类，类外部无法访问
+
+      4. **[详细资料请看：/stage05/README.md](/stage05/README.md)**
+      5. **[详细代码请看：/stage05/index.ts](/stage05/index.ts)**
 
 
 

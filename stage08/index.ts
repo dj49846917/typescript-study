@@ -88,3 +88,40 @@
     m.add('v');
     m.add('e');
     console.log(m.min()) 
+
+// 6.4 泛型接口
+    // 函数接口
+    /* 
+        interface ConfigFn{
+            (value1:string, value2:string):string
+        }
+
+        var setData:ConfigFn = function(value1:string, value2:string):string {
+            return value1 + value2
+        }
+        console.log(setData("zhang", "三")) 
+    */
+
+    // 泛型接口方式一
+    /* 
+        interface ConfigFn {
+            <T>(value:T):T
+        }
+
+        var setData:ConfigFn = function<T>(value:T):T{
+            return value;
+        }
+        setData<string>('张三'); 
+    */
+
+    // 方式二
+    interface ConfigFn<T> {
+        (value:T):T
+    }
+
+    function setData<T>(value:T):T {
+        return value
+    }
+
+    const myGetData:ConfigFn<string> = setData;
+    myGetData('20')

@@ -77,3 +77,44 @@
       ```
 
    * **泛型接口**
+    1. 普通的函数接口
+      ```
+        interface ConfigFn{
+            (value1:string, value2:string):string
+        }
+
+        var setData:ConfigFn = function(value1:string, value2:string):string {
+            return value1 + value2
+        }
+        console.log(setData("zhang", "三")) 
+      ```
+
+    2. 泛型接口
+        * 方式一：
+          ```
+          interface ConfigFn {
+              <T>(value:T):T
+          }
+
+          var setData:ConfigFn = function<T>(value:T):T{
+              return value;
+          }
+          setData<string>('张三'); 
+          ```
+
+        * 方式二：
+          ```
+            interface ConfigFn<T> {
+                (value:T):T
+            }
+
+            function setData<T>(value:T):T {
+                return value
+            }
+
+            const myGetData:ConfigFn<string> = setData;
+            myGetData('20')
+          ```
+
+
+# [详细代码请看：index.ts](index.ts)

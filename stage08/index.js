@@ -83,3 +83,8 @@ m.add('h');
 m.add('v');
 m.add('e');
 console.log(m.min());
+function setData(value) {
+    return value;
+}
+var myGetData = setData;
+myGetData('20');

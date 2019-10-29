@@ -109,6 +109,34 @@
    * [详细资料请看:/stage07/README.md](/stage07/README.md)      
    * [详细代码请看:/stage07/index.ts](/stage07/index.ts) 
 
+7. typescript中的泛型
+   * **泛型的定义**
+      * 泛型就是解决类、接口、方法的复用性，以及对不特定数据类型的支持（类型校验）
+   * **泛型函数**
+   * **泛型类**
+   * **泛型接口**     
+      <1>. 方式一      
+      <2>. 方式二
+
+   * [详细资料请看:/stage08/README.md](/stage08/README.md)      
+   * [详细代码请看:/stage08/index.ts](/stage08/index.ts) 
+
+   * **练习：封装一个操作数据库的库，支持Mysql、Mssql、get方法**
+     * [详细代码请看:/stage09/index.ts](/stage09/index.ts) 
+
+8. 模块
+   * 模块的概念
+
+   * 模块导出的几种方式    
+      <1>. export 导出声明   
+      <2>. export 导出语句   
+      <3>. export default    
+      <4>. import 导入模块         
+
+   * 模块化封装上一讲的db库
+
+   * [详细代码请看:/stage10/index.ts](/stage10/index.ts) 
+   
 
 
 

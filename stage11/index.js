@@ -1,4 +1,6 @@
-/* 
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
 命名空间：
     在代码量较大的情况下，为了避免各种变量命名相冲突，可将相似功能的函数，类，接口等放置到命名空间内
 
@@ -10,38 +12,32 @@
     模块：ts的外部模块的简称，侧重代码的重用，一个模块里可能会有多个命名空间
 */
 // 方式一：模块内部
-namespace A {
-    interface Animal {
-        name: string;
-        eat(): void;
-    }
-    
-    export class Dog implements Animal {
-        name: string;
-        constructor(name:string) {
+var A;
+(function (A) {
+    var Dog = /** @class */ (function () {
+        function Dog(name) {
             this.name = name;
         }
-        eat():void {
+        Dog.prototype.eat = function () {
             console.log(this.name + '吃肉');
-        }
-    }
-    
-    export class Cat implements Animal {
-        name: string;
-        constructor(name:string) {
+        };
+        return Dog;
+    }());
+    A.Dog = Dog;
+    var Cat = /** @class */ (function () {
+        function Cat(name) {
             this.name = name;
         }
-        eat():void {
+        Cat.prototype.eat = function () {
             console.log(this.name + '吃鱼');
-        }
-    }
-}
-
-
-const c = new A.Cat("咪咪");
-c.eat()
-
+        };
+        return Cat;
+    }());
+    A.Cat = Cat;
+})(A || (A = {}));
+var c = new A.Cat("咪咪");
+c.eat();
 // 方式二：模块外部
-import { B, C } from './modules/person'
-const p = new B.Programmer("张三", "20");
-p.doing()
+var person_1 = require("./modules/person");
+var p = new person_1.B.Programmer("张三", "20");
+p.doing();

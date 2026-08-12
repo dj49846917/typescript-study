@@ -21,6 +21,12 @@ export function DemoCard({ demo, index }: DemoCardProps) {
         <span>结果 / 类型</span>
         <strong>{demo.result}</strong>
       </div>
+      {(demo.when || demo.pitfall) && (
+        <div className="practice-notes">
+          {demo.when && <p><span>适用</span>{demo.when}</p>}
+          {demo.pitfall && <p><span>注意</span>{demo.pitfall}</p>}
+        </div>
+      )}
       {demo.note && <p className="note">提示：{demo.note}</p>}
     </article>
   );

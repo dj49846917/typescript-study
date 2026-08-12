@@ -4,13 +4,17 @@
 
 ## 现在包含什么
 
-- 11 个系统章节、58 个独立 Demo
+- 14 个系统章节、76 个独立 Demo
 - 基础类型、函数、对象、接口、联合类型与收窄
 - 类、泛型、类型操作、模板字面量、条件类型与 `infer`
 - 内置工具类型、ESM、异步结果、`using` 与声明文件
 - `satisfies`、const 泛型、标准装饰器和 TypeScript 7 迁移基线
 - TSConfig 严格模式、模块解析、产物策略与项目引用
+- 品牌类型、递归映射、XOR、`NoInfer` 与类型级测试
+- 类型安全事件、路由参数解析、状态化 Builder 与 Result 管道
+- React 19 互斥 Props、泛型组件、Reducer、ref 与 Variant 模式
 - 全文搜索、难度筛选、代码复制和类型推断实验台
+- 浏览器内 TypeScript / HTML / CSS 实时代码编辑与隔离效果预览
 - Storybook 自动文档与可独立托管的静态产物
 
 > “每个 API 都有 Demo”在这里指课程覆盖的每个语言特性与高频类型 API 都有独立示例。TypeScript Compiler API 是另一套用于构建工具的低层 API；TypeScript 7 已将它迁移到新的不稳定原生 API 路径，因此本项目不把不稳定接口混入入门课程。

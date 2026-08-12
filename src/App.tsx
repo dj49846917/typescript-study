@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { ChapterView } from './components/ChapterView';
 import { TypePlayground } from './components/TypePlayground';
+import { LiveCodeLab } from './components/LiveCodeLab';
 import { chapters, demoCount } from './content/curriculum';
 
 const storybookUrl = import.meta.env.DEV ? 'http://localhost:6006' : './storybook/index.html';
 
 export default function App() {
   const [query, setQuery] = useState('');
-  const [activeLevel, setActiveLevel] = useState<'全部' | '基础' | '进阶' | '工程'>('全部');
+  const [activeLevel, setActiveLevel] = useState<'全部' | '基础' | '进阶' | '工程' | '高级'>('全部');
 
   const visibleChapters = useMemo(() => {
     const keyword = query.trim().toLocaleLowerCase('zh-CN');
@@ -34,6 +35,7 @@ export default function App() {
           <div className="nav-links">
             <a href="#curriculum">课程</a>
             <a href="#playground">实验台</a>
+            <a href="#live-code">写代码</a>
             <a href={storybookUrl}>Storybook 文档</a>
           </div>
         </nav>
@@ -72,7 +74,7 @@ export default function App() {
             <input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索 keyof、泛型、strict…" />
           </label>
           <div className="level-filter" aria-label="按难度筛选">
-            {(['全部', '基础', '进阶', '工程'] as const).map(level => (
+            {(['全部', '基础', '进阶', '工程', '高级'] as const).map(level => (
               <button key={level} className={activeLevel === level ? 'active' : ''} onClick={() => setActiveLevel(level)}>{level}</button>
             ))}
           </div>
@@ -85,6 +87,7 @@ export default function App() {
         </div>
 
         <div id="playground"><TypePlayground /></div>
+        <LiveCodeLab />
       </main>
 
       <footer>

@@ -38,3 +38,6 @@ export const 工具类型 = lesson('utility-types', '把标准工具类型应用
 export const 模块异步 = lesson('modules-async', '以 ESM 组织类型和值，建立异步结果模型，并了解显式资源管理与声明文件。');
 export const 现代实践 = lesson('modern-features', '识别近代 TypeScript 的关键能力，并使用适合 TypeScript 7 的项目习惯。');
 export const 工程配置 = lesson('tsconfig', '理解关键编译选项的职责，为浏览器应用、Node.js 项目和 npm 库选择不同配置。');
+export const 高级建模 = lesson('advanced-modeling', '用品牌、递归映射、XOR、NoInfer 与类型测试表达业务不变量。');
+export const 类型安全API = lesson('type-safe-apis', '把事件、路由、Builder 与 Result 中的关联关系封装成易用 API。');
+export const React高级模式 = lesson('react-patterns', '在 React 19 中安全建模互斥 Props、泛型组件、Reducer、ref 和样式变体。');

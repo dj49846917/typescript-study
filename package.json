@@ -1,0 +1,29 @@
+{
+  "name": "typescript-study",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build:all": "npm run build && storybook build -o dist/storybook",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "6.0.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "7.0.2",
+    "vite": "8.2.1"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "10.5.7",
+    "@storybook/react-vite": "10.5.7",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "storybook": "10.5.7"
+  }
+}

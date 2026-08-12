@@ -1,165 +1,84 @@
-# typescript学习
+# TypeScript Study · 2026
 
-1. **vscode配置自动编译**   
-  <1>. 输入命令： tsc --init 生成tsconfig.json, 改“outDir” 为 “./js”
+一个基于 **TypeScript 7** 的现代中文学习项目。项目同时提供可搜索的 Demo 站和 Storybook 详细文档；旧版 `stage01`–`stage12` 保留为历史对照材料。
 
-   <2>. 终端-->运行任务-->监视
+## 现在包含什么
 
-   <3>. [详细代码请看: stage01/index.ts](/stage01/index.ts)
+- 11 个系统章节、58 个独立 Demo
+- 基础类型、函数、对象、接口、联合类型与收窄
+- 类、泛型、类型操作、模板字面量、条件类型与 `infer`
+- 内置工具类型、ESM、异步结果、`using` 与声明文件
+- `satisfies`、const 泛型、标准装饰器和 TypeScript 7 迁移基线
+- TSConfig 严格模式、模块解析、产物策略与项目引用
+- 全文搜索、难度筛选、代码复制和类型推断实验台
+- Storybook 自动文档与可独立托管的静态产物
 
-2. **typescript的数据类型**   
-  <1>. **布尔类型(boolean)**
+> “每个 API 都有 Demo”在这里指课程覆盖的每个语言特性与高频类型 API 都有独立示例。TypeScript Compiler API 是另一套用于构建工具的低层 API；TypeScript 7 已将它迁移到新的不稳定原生 API 路径，因此本项目不把不稳定接口混入入门课程。
 
-   <2>. **数字类型(number)**
+## 本地运行
 
-   <3>. **字符串类型(string)**
- 
-   <4>. **数组类型(array)**
-  
-   <5>. **元组类型(tuple)**
-  
-   <6>. **枚举类型(enum)**
-  
-   <7>. **任意类型(any)**
-  
-   <8>. **null和undefined**
-  
-   <9>. **void类型：表示没有任何类型，一般用于定义方法的时候方法没有返回值**
-  
-   <10>. **never类型：是其他类型(包括null和undefined)的子类型，代表从不会出现的值** 
-  
-  * **[详细代码请看：typescript-study/stage02/index.ts](/stage02/index.ts)**
+环境要求：Node.js 20+、npm 10+。
 
-  * **[详细信息请看：stage02/README.md](/stage02/README.md)**
+```bash
+npm install
+npm run dev
+```
 
-3. typescript函数    
-   * **函数的定义**  
- 
-   * **ts中定义方法传参**   
-      <1>. 普通参数
+Demo 站默认位于 <http://localhost:5173>。
 
-       <2>.方法可选参数： ts中在参数后面加上'?'
+另开一个终端启动 Storybook：
 
-       <3>. 默认参数
+```bash
+npm run storybook
+```
 
-       <4>. 剩余参数
+Storybook 默认位于 <http://localhost:6006>。
 
-   * **函数重载**
-  
-   * **[详细资料请看：/stage03/README.md]**
+## 验证与构建
 
-   * **[详细代码请看：/stage03/index.ts]**
+```bash
+# TypeScript 7 严格类型检查
+npm run typecheck
 
-4. typescript中的类和继承   
-   * es5   
-      1. es5里面的类
-          * 最简单的类
-          * 构造函数添加属性和方法
-          * 原型链里面添加属性和方法
-   
-      2. es5里的继承
-          * 对象冒充实现继承
-          * 原型链实现继承
-          * 对象冒充 + 原型链组合实现继承
-      
-      3. **[详细资料请看：/stage04/README.md](/stage04/README.md)**
-      4. **[详细代码请看：/stage04/index.ts](/stage04/index.ts)**
-   
-   * typescript
-      1. ts中类的定义
-      2. 类的继承(extends, super)
-      3. 类的修饰符
-         * public: 公有。  在类里面，子类，类外面都可以访问
-         * protected： 保护类型。  在类里面，子类里面可以访问，在类外部服务访问
-         * private: 私有。 在类里面可以访问，子类，类外部无法访问
+# 只生成 Demo 站到 dist/
+npm run build
 
-      4. **[详细资料请看：/stage05/README.md](/stage05/README.md)**
-      5. **[详细代码请看：/stage05/index.ts](/stage05/index.ts)**
+# 只生成 Storybook 到 storybook-static/
+npm run build-storybook
 
-5. typscript静态属性、方法、多态和抽象类
-   * **静态属性、方法**
-      1. es5的静态属性、方法
-      2. typescript的静态属性、方法
+# 生成一个可整体部署的 dist/（Storybook 位于 dist/storybook/）
+npm run build:all
+```
 
-   * **多态**
-      1. 概念：父类定义一个方法不去实现，让继承它的子类取实现，每一个子类有不同的表现
-      2. 注意：多态属于继承
+`npm run build:all` 后可将整个 `dist/` 发布到 GitHub Pages、Cloudflare Pages、Vercel、Netlify 或任意静态文件服务器。Vite 使用相对资源路径，因此部署到仓库子路径也能正常加载。
 
-   * **抽象类**
-      1. 概念：它是提供其他类继承的基类，不能直接被类实例化
-      2. 注意：
-        * 用abstract关键字定义抽象类和抽象方法，抽象类中的抽象方法不包含具体实现并且必须在派生类中实现
+## 项目结构
 
-        * abstract:抽象方法只能在抽象类里面
+```text
+.
+├── .storybook/            # Storybook 10 配置
+├── src/
+│   ├── components/        # Demo 卡片、章节视图、类型实验台
+│   ├── content/           # 课程与全部示例的单一数据源
+│   ├── stories/           # Storybook 欢迎页、课程和工具故事
+│   └── App.tsx            # 可搜索的静态 Demo 站
+├── stage01 ... stage12/   # 原项目历史示例（不参与现代构建）
+├── tsconfig.app.json      # 浏览器应用严格配置
+└── tsconfig.node.json     # Vite / Storybook 配置文件检查
+```
 
-        * 抽象类和抽象方法用来定义标准，标准：Animal这个类要求它的子类必须包含eat方法
+## 学习建议
 
-6. typescript中的接口
-   * **作用:** 在面向对象的编程中，接口是一种规范的定义，它定义了行为和动作的规范，在程序设计里面，接口起到一种限制和规范的作用。接口定义了某一批类所需要遵守的规范，接口不关心这些类的内部状态数据，也不关心这些类里方法的实现细节，它只规定这批类里必须提供某些方法，提供这些方法的类就可以满足实际需要。typescript中的接口类似于java
+1. 初学者按 01 → 11 顺序学习，并亲手修改卡片里的代码。
+2. 有经验的开发者可从“类型操作”“现代实践”和“TSConfig”开始。
+3. 复制示例到 `src/` 中实验，然后运行 `npm run typecheck` 查看 TypeScript 7 的真实诊断。
+4. 对照旧 `stage` 示例观察 `var`、CommonJS、ES5 target 和旧装饰器写法为什么不再适合作为现代默认值。
 
-   * **分类:**    
-      1. **属性类接口(用来对批量方法进行约束)**
-      2. **函数类型接口：对方法传入的参数以及返回值进行约束，批量约束**
-      3. **可索引接口：数组、对象的约束（不常用）**
-      4. **类类型接口：对类的约束。（和抽象类有点相似）**
-      5. 接口拓展   
-         <1>. **接口可以继承接口**       
-         <2>. **可以同时继承类和实现接口**  
+## 技术基线
 
-   * [详细资料请看:/stage07/README.md](/stage07/README.md)      
-   * [详细代码请看:/stage07/index.ts](/stage07/index.ts) 
+- TypeScript 7.0.2
+- Storybook 10.5.7
+- React 19.2.8
+- Vite 8.2.1
 
-7. **typescript中的泛型**
-   * **泛型的定义**
-      * 泛型就是解决类、接口、方法的复用性，以及对不特定数据类型的支持（类型校验）
-   * **泛型函数**
-   * **泛型类**
-   * **泛型接口**     
-      <1>. 方式一      
-      <2>. 方式二
-
-   * [详细资料请看:/stage08/README.md](/stage08/README.md)      
-   * [详细代码请看:/stage08/index.ts](/stage08/index.ts) 
-
-   * **练习：封装一个操作数据库的库，支持Mysql、Mssql、get方法**
-     * [详细代码请看:/stage09/index.ts](/stage09/index.ts) 
-
-8. **模块**
-   * 模块的概念
-
-   * 模块导出的几种方式    
-      <1>. export 导出声明   
-      <2>. export 导出语句   
-      <3>. export default    
-      <4>. import 导入模块         
-
-   * 模块化封装上一讲的db库
-
-   * [详细代码请看:/stage10/index.ts](/stage10/index.ts) 
-
-9. **命名空间**
-   * **概念：**
-      * 在代码量较大的情况下，为了避免各种变量命名相冲突，可将相似功能的函数，类，接口等放置到命名空间内，同Java的包，.net的命名空间一样，typescript的命名空间可以将代码包裹起来，只对外暴露需要在外部访问的对象，命名空间内的对象通过
-
-   * **命名空间和模块的区别：**
-      1. 命名空间：内部模块，主要用于组织代码，避免命名冲突
-      2. 模块：ts的外部模块的简称，侧重代码的重用，一个模块里可能会有多个命名空间
-
-   * **实现方式**
-      1. **方式一：模块内部**
-      2. **方式二：模块外部**
-
-   * [详细代码请看：/stage11/index.ts](/stage11/index.ts)
-   * [详细资料请看：/stage11/README.md](/stage11/README.md)
-
-   
-
-
-
-   
-
-   
-
-
-
-
+参考：[TypeScript 文档](https://www.typescriptlang.org/docs/)、[Storybook 文档](https://storybook.js.org/docs/)、[Vite 文档](https://vite.dev/guide/)。

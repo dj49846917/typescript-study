@@ -1,0 +1,161 @@
+export type CaseCategory = 'API 边界' | '领域建模' | 'React 状态' | '类型安全工具';
+
+export interface ProjectCase {
+  id: string;
+  category: CaseCategory;
+  title: string;
+  source: string;
+  problem: string;
+  before: string;
+  after: string;
+  gains: string[];
+  boundary: string;
+}
+
+export const projectCases: ProjectCase[] = [
+  {
+    id: 'unknown-boundary',
+    category: 'API 边界',
+    title: 'API 原始响应：any → unknown',
+    source: 'src/api/http.ts · Packt / decodeJsonPackt',
+    problem: 'JSON.parse 与缓存响应直接进入 any，之后所有泛型返回值都建立在未经验证的断言上。',
+    before: `interface Packt {\n  code: number;\n  data: any;\n  msg: string;\n}\n\nprivate async decodeJsonPackt(...): Promise<any> {\n  const packt = JSON.parse(text) as Packt;\n  return packt.data;\n}`,
+    after: `interface ApiEnvelope<T> {\n  code: number;\n  data: T;\n  msg: string;\n}\n\nfunction isEnvelope(value: unknown): value is ApiEnvelope<unknown> {\n  return typeof value === 'object' && value !== null\n    && 'code' in value && typeof value.code === 'number'\n    && 'data' in value;\n}\n\nfunction parseEnvelope(value: unknown): ApiEnvelope<unknown> {\n  if (!isEnvelope(value)) throw new InvalidResponseError(value);\n  return value;\n}`,
+    gains: ['不可信数据停留在 unknown', '验证逻辑集中在网络边界', '业务层不再继承 any'],
+    boundary: '类型守卫只能验证写出的字段；复杂响应建议使用 Zod、Valibot 或 JSON Schema 做运行时校验。',
+  },
+  {
+    id: 'generic-decoder',
+    category: 'API 边界',
+    title: '让泛型贯穿解码链路',
+    source: 'src/api/http.ts · postJson / getJson / pendingRequests',
+    problem: '公开方法虽然写了 <T>，内部解码和请求缓存仍是 Promise<any>，类型关系在中途断开。',
+    before: `private pendingRequests = new Map<string, Promise<any>>();\n\nasync postJson<T = any>(url: string, data: any = ''): Promise<T> {\n  const { res } = await this.post(url, data);\n  return this.decodeJsonPackt(res, url);\n}`,
+    after: `type JsonObject = Record<string, unknown>;\ntype PendingResponse = Promise<RawResponse>;\n\nprivate pendingRequests = new Map<string, PendingResponse>();\n\nasync postJson<Response, Body extends JsonObject = JsonObject>(\n  url: string,\n  body: Body,\n  decode: (value: unknown) => Response,\n): Promise<Response> {\n  const raw = await this.post(url, body);\n  const envelope = await this.decodeEnvelope(raw);\n  return decode(envelope.data);\n}`,
+    gains: ['请求体和响应类型彼此独立', '默认类型不再是 any', '每个端点明确选择解码器'],
+    boundary: '泛型本身不会验证服务端数据；必须让 decode 真正执行运行时检查。',
+  },
+  {
+    id: 'literal-collapse',
+    category: '领域建模',
+    title: '修复被 string 吞掉的字面量联合',
+    source: 'src/api/webhook-api_.ts · WebhookLogListSearchParam',
+    problem: '`"pending" | "processing" | "success" | string` 最终等价于 string，自动补全和非法值检查全部失效。',
+    before: `interface WebhookSearch {\n  type: 'API Deposit' | 'Invoice' | string;\n  status: 'pending' | 'processing' | 'success' | string;\n  result: 'success' | 'failed' | string;\n}`,
+    after: `const webhookStatus = ['pending', 'processing', 'success'] as const;\ntype WebhookStatus = (typeof webhookStatus)[number];\n\nconst webhookResult = ['success', 'failed'] as const;\ntype WebhookResult = (typeof webhookResult)[number];\n\ninterface WebhookSearch {\n  type: WebhookType | 'all';\n  status: WebhookStatus | 'all';\n  result: WebhookResult | 'all';\n}`,
+    gains: ['非法状态立即报错', '表单选项与类型可共享常量', 'switch 可以穷尽检查'],
+    boundary: '若后端确实允许未知扩展值，可用 `Known | (string & {})` 保留提示，但业务分支仍要处理 unknown case。',
+  },
+  {
+    id: 'endpoint-map',
+    category: 'API 边界',
+    title: '端点契约表代替散落 Promise<any>',
+    source: 'src/api/approvalApi_.ts、financialApi.ts、payment-api_.ts',
+    problem: '多个 API 方法返回 Promise<any> 或依赖 postJson 默认泛型，调用页面无法知道真实结果。',
+    before: `changeWithStatus(params: FormStatusType): Promise<any> {\n  return http.postJson('/approval/status', params);\n}\n\nresendOneLog(id: number) {\n  return http.postJson('/webhook/resend/one', { id });\n}`,
+    after: `interface EndpointMap {\n  '/approval/status': { body: FormStatus; response: { updated: true } };\n  '/webhook/resend/one': { body: { id: WebhookId }; response: void };\n}\n\nfunction post<Path extends keyof EndpointMap>(\n  path: Path,\n  body: EndpointMap[Path]['body'],\n): Promise<EndpointMap[Path]['response']> {\n  return client.postJson(path, body, decoders[path]);\n}`,
+    gains: ['路径、请求体、响应保持关联', '重构路径时有全局检查', '测试可按契约表生成'],
+    boundary: '小项目逐方法显式写 Promise<Response> 已足够；端点表适合 API 数量多且契约稳定的项目。',
+  },
+  {
+    id: 'domain-primitives',
+    category: '领域建模',
+    title: '品牌类型区分业务 ID 与金额字符串',
+    source: 'src/api/userListApi.ts、ReferralApi.ts · 多种 string 字段',
+    problem: 'user_id、record_id、bill_id、coin_id 都是 string，参数顺序写错时 TypeScript 无法发现。',
+    before: `interface UserDetailParams {\n  user_id: string;\n  record_id: string;\n  coin_id: number;\n}\n\nfunction getDetail(userId: string, recordId: string) { /* ... */ }`,
+    after: `declare const domain: unique symbol;\ntype Id<Name extends string> = string & { readonly [domain]: Name };\n\ntype UserId = Id<'UserId'>;\ntype RecordId = Id<'RecordId'>;\ntype CoinId = Id<'CoinId'>;\ntype DecimalString = string & { readonly [domain]: 'DecimalString' };\n\ninterface UserDetailParams {\n  user_id: UserId;\n  record_id: RecordId;\n  coin_id: CoinId;\n}`,
+    gains: ['结构相同的业务值不能误传', '函数签名自带领域语义', '金额不会被普通 string 随意替代'],
+    boundary: '品牌值必须由解析函数、表单校验器或 API decoder 创建，不能到处 `as UserId`。',
+  },
+  {
+    id: 'generic-pagination',
+    category: '类型安全工具',
+    title: '提取通用分页模型',
+    source: 'src/api/userListApi.ts、activityApi.ts、webhook-api_.ts',
+    problem: 'page_num、page_size、total 和 list 在多个 API 重复声明，且 total 同时存在 string 与 number。',
+    before: `interface Pagination { page_num: number; page_size: number; total?: string }\ninterface UserListResponse { merchant_users: User[]; total: string }\ninterface WebhookResponse {\n  list: Webhook[];\n  pagination: { page_num: number; page_size: number; total: number };\n}`,
+    after: `interface PageRequest {\n  page: number;\n  size: number;\n}\ninterface Page<T> {\n  items: readonly T[];\n  page: number;\n  size: number;\n  total: number;\n}\n\nfunction normalizePage<T>(raw: BackendPage<T>): Page<T> {\n  return { items: raw.list, page: raw.page_num, size: raw.page_size, total: Number(raw.total) };\n}`,
+    gains: ['页面只消费统一分页语言', '后端 string/number 差异被隔离', '表格与分页 Hook 可以泛型复用'],
+    boundary: '游标分页和页码分页语义不同，应建成 `CursorPage<T> | NumberedPage<T>`，不要强行统一。',
+  },
+  {
+    id: 'async-state',
+    category: 'React 状态',
+    title: '空对象断言 → 可辨识异步状态',
+    source: 'src/pages/ApiBulkPaymentDetailPage.tsx · detailInfo',
+    problem: '`{} as Response` 让未加载状态伪装成完整数据，页面只能到处使用 `?.` 和 `|| ""` 补洞。',
+    before: `const [loading, setLoading] = useState(true);\nconst [detailInfo, setDetailInfo] = useState<DetailResponse>(\n  {} as DetailResponse,\n);\n\nif (detailInfo.status === 'Completed') { /* ... */ }`,
+    after: `type AsyncState<T> =\n  | { status: 'idle' }\n  | { status: 'loading' }\n  | { status: 'success'; data: T }\n  | { status: 'error'; error: Error };\n\nconst [detail, setDetail] = useState<AsyncState<DetailResponse>>({ status: 'idle' });\n\nif (detail.status === 'success') {\n  renderSummary(detail.data);\n}`,
+    gains: ['不可能读到假的完整对象', 'loading/data/error 不会互相矛盾', '渲染分支自动收窄'],
+    boundary: '使用 SWR/React Query 时优先复用库的状态模型，不必再包一层重复状态。',
+  },
+  {
+    id: 'typed-object-filter',
+    category: '类型安全工具',
+    title: '动态字段搜索不再 `as any`',
+    source: 'src/pages/UserList/Details.tsx · address filter',
+    problem: '字段名是 string，访问 `(item as any)[field]` 会让拼写错误和非字符串字段逃过检查。',
+    before: `const fields = ['address', 'all_chain_name', 'chain', 'memo'];\n\nfields.some(field =>\n  (item as any)?.[field]?.toUpperCase().includes(keyword),\n);`,
+    after: `type Address = UserAddressListItem;\ntype SearchableKey = {\n  [K in keyof Address]-?: Address[K] extends string ? K : never\n}[keyof Address];\n\nconst fields = [\n  'address', 'all_chain_name', 'chain', 'memo',\n] as const satisfies readonly SearchableKey[];\n\nfields.some(field => item[field].toUpperCase().includes(keyword));`,
+    gains: ['字段拼错立即报错', '不能误选 number/boolean 字段', 'item[field] 保持 string 类型'],
+    boundary: '可选字符串字段需要 `item[field]?.toUpperCase()`，类型设计应忠实反映后端是否缺失。',
+  },
+  {
+    id: 'search-options',
+    category: 'React 状态',
+    title: '枚举反查 + any → 直接值映射',
+    source: 'src/pages/WebHook/TopSearch/index.tsx · searchOptionsEnum',
+    problem: '数字枚举双向映射迫使代码使用 keyof 和 any 断言，UI 选项值与 store 字段的关系不直观。',
+    before: `enum SearchOptions { record_id = -1, notify_url = 1 }\n\ntypeValue={SearchOptions[searchParam.key as keyof typeof SearchOptions]}\nonChange={v => setSearchParam({\n  key: SearchOptions[v] as any,\n})}`,
+    after: `const searchOptions = [\n  { value: 'record_id', uiValue: -1, label: 'Record ID' },\n  { value: 'notify_url', uiValue: 1, label: 'URL' },\n] as const satisfies readonly {\n  value: WebhookSearch['key'];\n  uiValue: number;\n  label: string;\n}[];\n\nconst selected = searchOptions.find(option => option.uiValue === value);\nif (selected) setSearchParam({ key: selected.value });`,
+    gains: ['没有反向枚举魔法', 'UI 值和领域值显式关联', '删除所有相关 any 断言'],
+    boundary: '如果组件支持 string value，直接让 value 使用领域键会更简单，根本无需 uiValue。',
+  },
+  {
+    id: 'token-option',
+    category: '领域建模',
+    title: '伪造完整 Token → 可辨识选项',
+    source: 'src/pages/Invoice/CreateInvoice.tsx、UserList/AssetRecordTopSearchForm.tsx',
+    problem: '“All Tokens” 被强制断言为 SystemToken，并为不适用字段填充假值；后续很难区分真实 Token。',
+    before: `const allTokens = {\n  name: 'All Tokens', coin_id: -1, token_id: '',\n  price: '0', logo: '', type: -1,\n} as SystemToken;\n\nconst [table, setTable] = useState<any[]>([]);`,
+    after: `type TokenOption =\n  | { kind: 'all'; label: string }\n  | { kind: 'token'; token: SystemToken };\n\nconst allTokens = { kind: 'all', label: 'All Tokens' } satisfies TokenOption;\nconst options: readonly TokenOption[] = [\n  allTokens,\n  ...tokens.map(token => ({ kind: 'token', token }) as const),\n];\n\nconst coinId = selected.kind === 'all' ? undefined : selected.token.coin_id;`,
+    gains: ['不再制造无意义字段', '分支收窄后真实 Token 一定完整', '特殊选项语义清晰'],
+    boundary: '若 API 明确定义 `coin_id: 0` 表示全部，可在提交边界转换，不要污染 UI 领域模型。',
+  },
+  {
+    id: 'status-groups',
+    category: '领域建模',
+    title: '状态数组保持字面量类型',
+    source: 'src/pages/ApiBulkPaymentDetailPage.tsx · tab visibility',
+    problem: '已经有精确状态联合，却反复 `status as string` 再用临时字符串数组判断，主动丢掉类型信息。',
+    before: `const successfulCount = data.filter(item =>\n  ['Successful'].includes(item.status as string),\n).length;\n\nconst isFinal = ['Completed', 'Canceled', 'Rejected']\n  .includes(detail.status || '');`,
+    after: `const successful = new Set<PaymentStatus>(['Successful']);\nconst finalBatchStatuses = new Set<BatchStatus>([\n  'Completed', 'Canceled', 'Rejected',\n]);\n\nconst successfulCount = data.filter(\n  item => item.status !== undefined && successful.has(item.status),\n).length;\nconst isFinal = detail.status !== undefined\n  && finalBatchStatuses.has(detail.status);`,
+    gains: ['常量写错会编译失败', '删除 as string', '状态分组可复用且有领域命名'],
+    boundary: '只判断单个值时直接使用 `status === "Successful"`，不必为了抽象而创建 Set。',
+  },
+  {
+    id: 'ui-state-machine',
+    category: 'React 状态',
+    title: '布尔状态森林 → UI 状态机',
+    source: 'src/pages/balance/NetworkSend.tsx · 多个 loading/dialog/error state',
+    problem: '多个 loading、dialog、disabled 和 error 布尔值可以形成互相矛盾的组合，流程规则散落在组件中。',
+    before: `const [amountLoading, setAmountLoading] = useState(false);\nconst [confirmOpen, setConfirmOpen] = useState(false);\nconst [chainLoading, setChainLoading] = useState(false);\nconst [memoError, setMemoError] = useState(false);\nconst [isTryAgain, setIsTryAgain] = useState(false);`,
+    after: `type SendState =\n  | { step: 'editing'; draft: SendDraft }\n  | { step: 'validating'; draft: SendDraft }\n  | { step: 'confirming'; quote: SendQuote }\n  | { step: 'submitting'; quote: SendQuote }\n  | { step: 'failed'; draft: SendDraft; error: SendError }\n  | { step: 'success'; receipt: SendReceipt };\n\ntype SendAction =\n  | { type: 'EDIT'; patch: Partial<SendDraft> }\n  | { type: 'VALIDATE' }\n  | { type: 'CONFIRM'; quote: SendQuote }\n  | { type: 'FAIL'; error: SendError };`,
+    gains: ['非法流程组合无法表示', '每一步只携带需要的数据', 'Reducer 可以穷尽所有动作'],
+    boundary: '简单的独立弹窗仍用 boolean 更清晰；只有状态之间存在流程约束时才值得建状态机。',
+  },
+  {
+    id: 'exact-extension',
+    category: '领域建模',
+    title: '开放 any 索引 → 显式扩展点',
+    source: 'src/pages/balance/NetworkSend.tsx · memoParamsType',
+    problem: '`[key: string]: any` 使所有未知属性都合法，也让已知属性读取受到 any 污染。',
+    before: `type MemoParams = {\n  logo: string;\n  symbol: string;\n  memo: string;\n  [key: string]: any;\n} | null;`,
+    after: `interface MemoBase {\n  logo: string;\n  symbol: string;\n  memo: string;\n}\n\ntype MemoParams<Extra extends object = Record<never, never>> =\n  MemoBase & Extra;\n\ntype RefundMemo = MemoParams<{\n  refundAmount: DecimalString;\n  destination: Address;\n}>;\n\nconst [memo, setMemo] = useState<RefundMemo | null>(null);`,
+    gains: ['未知字段不再静默通过', '不同流程可声明自己的扩展字段', '已知字段保持精确类型'],
+    boundary: '如果扩展数据确实完全动态，使用 `Record<string, unknown>` 并在读取处收窄，而不是 any。',
+  },
+];
+
+export const projectCaseCount = projectCases.length;

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChapterView } from './components/ChapterView';
 import { TypePlayground } from './components/TypePlayground';
 import { LiveCodeLab } from './components/LiveCodeLab';
+import { ProjectCaseStudies } from './components/ProjectCaseStudies';
 import { chapters, demoCount } from './content/curriculum';
 
 const storybookUrl = import.meta.env.DEV ? 'http://localhost:6006' : './storybook/index.html';
@@ -36,6 +37,7 @@ export default function App() {
             <a href="#curriculum">课程</a>
             <a href="#playground">实验台</a>
             <a href="#live-code">写代码</a>
+            <a href="#project-cases">项目实战</a>
             <a href={storybookUrl}>Storybook 文档</a>
           </div>
         </nav>
@@ -85,6 +87,8 @@ export default function App() {
           {visibleChapters.map(chapter => <ChapterView key={chapter.slug} chapter={chapter} />)}
           {visibleChapters.length === 0 && <div className="empty-state">没有找到匹配的内容，换一个关键词试试。</div>}
         </div>
+
+        <ProjectCaseStudies />
 
         <div id="playground"><TypePlayground /></div>
         <LiveCodeLab />

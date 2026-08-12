@@ -7,7 +7,7 @@ const preview: Preview = {
     controls: { expanded: true },
     options: {
       storySort: {
-        order: ['开始', '课程', '工具'],
+        order: ['开始', '课程', '项目实战', '工具'],
       },
     },
   },

@@ -15,6 +15,7 @@
 - React 19 互斥 Props、泛型组件、Reducer、ref 与 Variant 模式
 - 全文搜索、难度筛选、代码复制和类型推断实验台
 - 浏览器内 TypeScript / HTML / CSS 实时代码编辑与隔离效果预览
+- 基于 payment-admin API 与页面代码提炼的 Before / After 类型重构案例
 - Storybook 自动文档与可独立托管的静态产物
 
 > “每个 API 都有 Demo”在这里指课程覆盖的每个语言特性与高频类型 API 都有独立示例。TypeScript Compiler API 是另一套用于构建工具的低层 API；TypeScript 7 已将它迁移到新的不稳定原生 API 路径，因此本项目不把不稳定接口混入入门课程。
